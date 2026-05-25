@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Files Shared With Me - Secure Cloud Storage</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 15px 0;
+        }
+        .navbar-brand {
+            font-weight: bold;
+            color: white !important;
+            font-size: 20px;
+        }
+        .nav-link {
+            color: white !important;
+            margin: 0 10px;
+        }
+        .nav-link:hover {
+            opacity: 0.8;
+        }
+        .shared-container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            max-width: 1000px;
+            margin: 30px auto;
+        }
+        .shared-container h2 {
+            color: #333;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 15px;
+        }
+        .no-files {
+            text-align: center;
+            color: #999;
+            padding: 50px 20px;
+        }
+        .no-files p {
+            font-size: 16px;
+        }
+        .file-card {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .file-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        .file-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+        .file-name {
+            font-weight: bold;
+            color: #333;
+            font-size: 18px;
+        }
+        .file-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .detail-item {
+            font-size: 14px;
+        }
+        .detail-label {
+            color: #999;
+            font-weight: 600;
+        }
+        .detail-value {
+            color: #333;
+            margin-top: 5px;
+        }
+        .permission-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            background: #e8f0ff;
+            color: #667eea;
+        }
+        .permission-badge.download {
+            background: #d4edda;
+            color: #155724;
+        }
+        .expiry-text {
+            font-size: 12px;
+            color: #999;
+            margin-top: 8px;
+        }
+        .expiry-text.soon {
+            color: #ff9800;
+            font-weight: 600;
+        }
+        .expiry-text.expired {
+            color: #f44336;
+            font-weight: 600;
+        }
+        .file-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .btn-action {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        .btn-action:hover {
+            transform: translateY(-1px);
+        }
+        .btn-download {
+            background: #667eea;
+            color: white;
+        }
+        .btn-download:hover {
+            background: #5568d3;
+        }
+        .btn-back {
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .btn-back:hover {
+            background: #5a6268;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="/dashboard">Secure Cloud Storage</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/files">My Files</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/shared">Shared with Me</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/upload_page">Upload</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logout">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="shared-container" style="position:relative;">
+        {% include '_notifications_dropdown.html' %}
+        <h2>Files Shared With You</h2>
+        
+        {% if files %}
+            {% for file in files %}
+                <div class="file-card">
+                    <div class="file-header">
+                        <div>
+                            <p class="file-name">{{ file.filename }}</p>
+                        </div>
+                        <span class="permission-badge {% if file.permission == 'download' %}download{% endif %}">
+                            {{ file.permission.upper() }}
+                        </span>
+                    </div>
+                    
+                    <div class="file-details">
+                        <div class="detail-item">
+                            <div class="detail-label">Shared by</div>
+                            <div class="detail-value">{{ file.owner }}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Uploaded</div>
+                            <div class="detail-value">{{ file.upload_time }}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Downloads</div>
+                            <div class="detail-value">{{ file.downloads or 0 }}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Expires</div>
+                            <div class="detail-value">{{ file.expiry.strftime('%Y-%m-%d %H:%M') if file.expiry else 'Never' }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="file-actions">
+                        {% if file.permission == 'download' or file.permission == 'read' %}
+                            <form method="POST" action="/download" style="margin: 0;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="file_id" value="{{ file.file_id }}">
+                                <button type="submit" class="btn-action btn-download">
+                                    {% if file.permission == 'download' %}📥 Download{% else %}👁️ View Details{% endif %}
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-files">
+                <p style="font-size: 24px; margin-bottom: 10px;">📂</p>
+                <p>No files have been shared with you yet.</p>
+                <p style="font-size: 14px; color: #bbb; margin-top: 10px;">Ask other users to share files with you to see them here.</p>
+            </div>
+        {% endif %}
+        
+        <a href="/files" class="btn-back">← Back to My Files</a>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

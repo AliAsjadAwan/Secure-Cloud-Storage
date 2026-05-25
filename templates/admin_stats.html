@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Statistics - Secure Cloud Storage</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1b3f 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #e8eaf6;
+            padding: 40px 20px;
+        }
+        .container { max-width: 1000px; }
+        .page-header {
+            margin-bottom: 40px;
+        }
+        .page-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .page-header p {
+            color: rgba(255, 255, 255, 0.6);
+            margin: 0;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 48px;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 32px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+            color: inherit;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #a855f7, #8b5cf6);
+        }
+        .stat-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-4px);
+        }
+        .stat-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .stat-number {
+            font-size: 42px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .btn-back {
+            background: rgba(168, 85, 247, 0.2);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            color: #a855f7;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .btn-back:hover {
+            background: rgba(168, 85, 247, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <h1>⚙️ Admin Statistics</h1>
+            <p>System Overview & Analytics</p>
+        </div>
+        
+        <div class="stats-grid">
+            <a href="/admin_users" class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-label">Total Users</div>
+                <div class="stat-number">{{users}}</div>
+            </a>
+            <a href="/admin_files" class="stat-card">
+                <div class="stat-icon">📁</div>
+                <div class="stat-label">Total Files</div>
+                <div class="stat-number">{{files}}</div>
+            </a>
+            <a href="/admin_logs_detail" class="stat-card">
+                <div class="stat-icon">📝</div>
+                <div class="stat-label">Total Logs</div>
+                <div class="stat-number">{{logs}}</div>
+            </a>
+        </div>
+        
+        <a href="/dashboard" class="btn-back">← Back to Dashboard</a>
+    </div>
+</body>
+</html>

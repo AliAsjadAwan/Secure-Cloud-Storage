@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Logs - Secure Cloud Storage</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1b3f 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #e8eaf6;
+            padding: 40px 20px;
+        }
+        .container { max-width: 1200px; }
+        .page-header {
+            margin-bottom: 40px;
+        }
+        .page-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .page-header p {
+            color: rgba(255, 255, 255, 0.6);
+            margin: 0;
+        }
+        .logs-table {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .logs-table table {
+            margin: 0;
+        }
+        .logs-table th {
+            background: rgba(168, 85, 247, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #a855f7;
+            font-weight: 600;
+            padding: 16px;
+        }
+        .logs-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+        }
+        .logs-table tr:last-child td {
+            border-bottom: none;
+        }
+        .logs-table tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .action-badge {
+            display: inline-block;
+            background: rgba(168, 85, 247, 0.2);
+            color: #a855f7;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .btn-back {
+            background: rgba(168, 85, 247, 0.2);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            color: #a855f7;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            margin-top: 24px;
+        }
+        .btn-back:hover {
+            background: rgba(168, 85, 247, 0.3);
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 40px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <h1>📋 System Logs</h1>
+            <p>Audit trail of all system activities</p>
+        </div>
+        
+        {% if logs %}
+        <div class="logs-table">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>User ID</th>
+                        <th>Action</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td>#{{log.user_id}}</td>
+                        <td><span class="action-badge">{{log.action}}</span></td>
+                        <td>{{log.timestamp}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>No logs available yet.</p>
+        </div>
+        {% endif %}
+        
+        <a href="/dashboard" class="btn-back">← Back to Dashboard</a>
+    </div>
+</body>
+</html>

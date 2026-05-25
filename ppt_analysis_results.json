@@ -1,0 +1,404 @@
+{
+  "total_presentations": 8,
+  "presentations": [
+    {
+      "filename": "Introduction to Cybersecurity v3.0 - Module1.pptx",
+      "title": "Module 1: Introduction to Cybersecurity",
+      "slides": 47,
+      "attacks_vulnerabilities": [
+        "ddos",
+        "botnet",
+        "malware",
+        "social engineering",
+        "phishing"
+      ],
+      "malware_types": [
+        "malware",
+        "botnet"
+      ],
+      "encryption_techniques": [
+        "sha",
+        "hash",
+        "encryption",
+        "des",
+        "rsa"
+      ],
+      "threats": [
+        "confidentiality",
+        "availability",
+        "weakness",
+        "exploit",
+        "vulnerability",
+        "threat",
+        "unauthorized access",
+        "security risk",
+        "risk",
+        "integrity",
+        "authentication"
+      ],
+      "best_practices": [
+        "update",
+        "monitor",
+        "backup",
+        "secure",
+        "best practice",
+        "guideline",
+        "protection",
+        "procedure",
+        "firewall",
+        "policy",
+        "should",
+        "defense"
+      ]
+    },
+    {
+      "filename": "Introduction to Cybersecurity v3.0 - Module2.pptx",
+      "title": "Module 2: Attacks, Concepts and Techniques",
+      "slides": 51,
+      "attacks_vulnerabilities": [
+        "man-in-the-middle",
+        "backdoor",
+        "malicious code",
+        "side-channel attack",
+        "social engineering",
+        "rootkit",
+        "dictionary attack",
+        "virus",
+        "buffer overflow",
+        "mitm",
+        "trojan",
+        "ddos",
+        "adware",
+        "malware",
+        "password attack",
+        "spyware",
+        "ransomware",
+        "worm",
+        "botnet",
+        "privilege escalation",
+        "rainbow table",
+        "phishing"
+      ],
+      "malware_types": [
+        "spyware",
+        "ransomware",
+        "backdoor",
+        "worm",
+        "adware",
+        "botnet",
+        "malicious code",
+        "malware",
+        "rootkit",
+        "virus",
+        "zombie",
+        "trojan"
+      ],
+      "encryption_techniques": [
+        "sha",
+        "hash",
+        "encryption",
+        "des",
+        "round"
+      ],
+      "threats": [
+        "confidentiality",
+        "weakness",
+        "exploit",
+        "authorization",
+        "exposure",
+        "vulnerability",
+        "threat",
+        "unauthorized access",
+        "risk",
+        "integrity",
+        "authentication"
+      ],
+      "best_practices": [
+        "update",
+        "monitor",
+        "secure",
+        "best practice",
+        "procedure",
+        "firewall",
+        "should",
+        "patch"
+      ]
+    },
+    {
+      "filename": "Module 01-Introduction.pptx",
+      "title": "CSC432 – Information Security",
+      "slides": 22,
+      "attacks_vulnerabilities": [],
+      "malware_types": [],
+      "encryption_techniques": [
+        "ssl",
+        "round",
+        "cryptography",
+        "rsa"
+      ],
+      "threats": [
+        "exploit",
+        "security risk",
+        "risk"
+      ],
+      "best_practices": [
+        "secure",
+        "audit",
+        "procedure",
+        "protection",
+        "firewall",
+        "policy"
+      ]
+    },
+    {
+      "filename": "Module 04-Cryptography and Encryption.pptx",
+      "title": "CSC432 – information Security",
+      "slides": 48,
+      "attacks_vulnerabilities": [
+        "brute force"
+      ],
+      "malware_types": [],
+      "encryption_techniques": [
+        "sha",
+        "block cipher",
+        "ciphertext",
+        "rsa",
+        "public key",
+        "cryptography",
+        "encryption",
+        "cipher",
+        "cryptanalysis",
+        "stream cipher",
+        "transposition",
+        "des",
+        "aes",
+        "private key",
+        "steganography",
+        "decryption",
+        "substitution",
+        "plaintext"
+      ],
+      "threats": [],
+      "best_practices": [
+        "standard",
+        "secure",
+        "must",
+        "protection",
+        "procedure"
+      ]
+    },
+    {
+      "filename": "Module 05-Block Ciphers and DES.pptx",
+      "title": "CSC348 – Data Security \u000band Encryption",
+      "slides": 39,
+      "attacks_vulnerabilities": [
+        "brute force"
+      ],
+      "malware_types": [],
+      "encryption_techniques": [
+        "sha",
+        "block cipher",
+        "ciphertext",
+        "cryptanalysis",
+        "cipher",
+        "encryption",
+        "stream cipher",
+        "feistel",
+        "transposition",
+        "des",
+        "aes",
+        "decryption",
+        "round",
+        "substitution",
+        "plaintext"
+      ],
+      "threats": [
+        "exploit"
+      ],
+      "best_practices": [
+        "standard",
+        "must",
+        "should"
+      ]
+    },
+    {
+      "filename": "Module 06-Advanced Encryption Standard.pptx",
+      "title": "CSC432 – information Security",
+      "slides": 38,
+      "attacks_vulnerabilities": [],
+      "malware_types": [],
+      "encryption_techniques": [
+        "block cipher",
+        "encryption",
+        "cipher",
+        "key expansion",
+        "feistel",
+        "des",
+        "aes",
+        "decryption",
+        "round",
+        "substitution"
+      ],
+      "threats": [],
+      "best_practices": [
+        "standard",
+        "must",
+        "secure"
+      ]
+    },
+    {
+      "filename": "Module 06b-DES and AES.pptx",
+      "title": "CSC432 – information Security",
+      "slides": 20,
+      "attacks_vulnerabilities": [
+        "brute force"
+      ],
+      "malware_types": [],
+      "encryption_techniques": [
+        "ciphertext",
+        "encryption",
+        "cipher",
+        "feistel",
+        "des",
+        "aes",
+        "decryption",
+        "round",
+        "substitution"
+      ],
+      "threats": [],
+      "best_practices": [
+        "standard",
+        "secure"
+      ]
+    },
+    {
+      "filename": "Module 08-Asymmetric Key Cryptography and RSA.pptx",
+      "title": "CSC432 – information Security",
+      "slides": 34,
+      "attacks_vulnerabilities": [],
+      "malware_types": [],
+      "encryption_techniques": [
+        "sha",
+        "rsa",
+        "public key",
+        "cryptography",
+        "encryption",
+        "cipher",
+        "des",
+        "private key",
+        "decryption",
+        "substitution",
+        "stream cipher"
+      ],
+      "threats": [
+        "confidentiality",
+        "weakness",
+        "risk",
+        "authentication"
+      ],
+      "best_practices": [
+        "must",
+        "secure"
+      ]
+    }
+  ],
+  "summary": {
+    "all_attacks": [
+      "adware",
+      "backdoor",
+      "botnet",
+      "brute force",
+      "buffer overflow",
+      "ddos",
+      "dictionary attack",
+      "malicious code",
+      "malware",
+      "man-in-the-middle",
+      "mitm",
+      "password attack",
+      "phishing",
+      "privilege escalation",
+      "rainbow table",
+      "ransomware",
+      "rootkit",
+      "side-channel attack",
+      "social engineering",
+      "spyware",
+      "trojan",
+      "virus",
+      "worm"
+    ],
+    "all_malware": [
+      "adware",
+      "backdoor",
+      "botnet",
+      "malicious code",
+      "malware",
+      "ransomware",
+      "rootkit",
+      "spyware",
+      "trojan",
+      "virus",
+      "worm",
+      "zombie"
+    ],
+    "all_encryption": [
+      "aes",
+      "block cipher",
+      "cipher",
+      "ciphertext",
+      "cryptanalysis",
+      "cryptography",
+      "decryption",
+      "des",
+      "encryption",
+      "feistel",
+      "hash",
+      "key expansion",
+      "plaintext",
+      "private key",
+      "public key",
+      "round",
+      "rsa",
+      "sha",
+      "ssl",
+      "steganography",
+      "stream cipher",
+      "substitution",
+      "transposition"
+    ],
+    "all_threats": [
+      "authentication",
+      "authorization",
+      "availability",
+      "confidentiality",
+      "exploit",
+      "exposure",
+      "integrity",
+      "risk",
+      "security risk",
+      "threat",
+      "unauthorized access",
+      "vulnerability",
+      "weakness"
+    ],
+    "all_best_practices": [
+      "audit",
+      "backup",
+      "best practice",
+      "defense",
+      "firewall",
+      "guideline",
+      "monitor",
+      "must",
+      "patch",
+      "policy",
+      "procedure",
+      "protection",
+      "secure",
+      "should",
+      "standard",
+      "update"
+    ]
+  }
+}

@@ -1,0 +1,92 @@
+<div id="notificationsDropdown" style="position: absolute; top: 16px; right: 40px; z-index: 999;">
+    <div style="position: relative;">
+        <button id="notifBell" class="btn btn-sm btn-light" style="background:transparent; border:none; color: #fff; font-size:18px;">
+            🔔 <span id="notifCount" style="color:#ffd700; font-weight:700; margin-left:6px;"></span>
+        </button>
+        <div id="notifMenu" style="display:none; position:absolute; right:0; top:28px; width:320px; background:#fff; color:#000; border-radius:8px; box-shadow:0 6px 20px rgba(0,0,0,0.15); overflow:hidden;">
+            <div style="padding:8px 12px; border-bottom:1px solid #eee; font-weight:700;">Notifications</div>
+            <div id="notifList" style="max-height:360px; overflow:auto;"></div>
+            <div style="padding:8px 12px; border-top:1px solid #eee; text-align:center;"><a href="/notifications">View all</a></div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function fetchNotifications(){
+    try{
+        const res = await fetch('/notifications_api');
+        if(!res.ok) return;
+        const data = await res.json();
+        const list = document.getElementById('notifList');
+        const countEl = document.getElementById('notifCount');
+        list.innerHTML = '';
+        let unread = 0;
+        if(data.length === 0){
+            list.innerHTML = '<div style="padding:12px; color:#666;">No notifications</div>';
+        }
+            for(const n of data){
+            const item = document.createElement('div');
+            item.style.padding = '10px 12px';
+            item.style.borderBottom = '1px solid #f0f0f0';
+            item.style.display = 'flex';
+            item.style.justifyContent = 'space-between';
+            const left = document.createElement('div');
+            left.innerHTML = `<div style="font-weight:600;">${n.message}</div><div style="font-size:12px;color:#666;">${n.created_at? new Date(n.created_at).toLocaleString() : ''}</div>`;
+            const right = document.createElement('div');
+            // compute open URL
+            let openUrl = '/notifications';
+            if(n.share_id){
+                openUrl = '/shared';
+            } else if(n.file_id){
+                openUrl = '/files';
+            }
+
+            const openBtn = document.createElement('a');
+            openBtn.className = 'btn btn-sm btn-outline-secondary';
+            openBtn.style.marginRight = '6px';
+            openBtn.textContent = 'Open';
+            openBtn.href = openBtn.onclick = function(e){
+                // mark read then navigate
+                fetch(`/notifications/mark_read/${n.id}`).then(()=>{
+                    window.location.href = openUrl;
+                });
+                return false;
+            };
+
+            if(!n.read){
+                const mark = document.createElement('button');
+                mark.className = 'btn btn-sm btn-primary';
+                mark.textContent = 'Mark';
+                mark.onclick = async function(){
+                    await fetch(`/notifications/mark_read/${n.id}`);
+                    fetchNotifications();
+                };
+                right.appendChild(openBtn);
+                right.appendChild(mark);
+                unread++;
+            } else {
+                right.appendChild(openBtn);
+                const readSpan = document.createElement('span');
+                readSpan.style.color = '#888';
+                readSpan.textContent = 'Read';
+                right.appendChild(readSpan);
+            }
+            item.appendChild(left);
+            item.appendChild(right);
+            list.appendChild(item);
+        }
+        countEl.textContent = unread? `(${unread})` : '';
+    }catch(e){
+        console.error('notif fetch err', e);
+    }
+}
+
+document.getElementById('notifBell').addEventListener('click', function(e){
+    const menu = document.getElementById('notifMenu');
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+});
+
+// initial fetch and poll
+fetchNotifications();
+setInterval(fetchNotifications, 20000);
+</script>

@@ -1,0 +1,12 @@
+#.gitignore for Secure Cloud Storage
+.env
+instance/
+__pycache__/
+*.db
+uploads/
+encrypted/
+decrypted/
+
+# do not commit virtual environments or IDE files (optional)
+.venv/
+.vscode/

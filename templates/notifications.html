@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications - Secure Cloud Storage</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+    <div style="padding:24px;">
+        <h2>Notifications</h2>
+        <p><a href="/files">← Back to My Files</a></p>
+        {% if notifications %}
+            <ul class="list-group">
+            {% for n in notifications %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <div style="font-weight:600;">{{ n.message }}</div>
+                        <small class="text-muted">ID: {{ n.id }}{% if n.created_at %} • {{ n.created_at.strftime('%Y-%m-%d %H:%M') }}{% endif %}</small>
+                    </div>
+                    <div>
+                        {% set target = '/notifications' %}
+                        {% if n.share_id %}
+                            {% set target = '/shared' %}
+                        {% elif n.file_id %}
+                            {% set target = '/files' %}
+                        {% endif %}
+                        <a href="/notifications/mark_read/{{ n.id }}" class="btn btn-sm btn-primary">Mark Read</a>
+                        <a href="{{ target }}" class="btn btn-sm btn-outline-secondary" style="margin-left:8px;">Open</a>
+                        {% if n.read %}
+                            <span class="badge bg-secondary" style="margin-left:8px;">Read</span>
+                        {% endif %}
+                    </div>
+                </li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p>No notifications.</p>
+        {% endif %}
+    </div>
+</body>
+</html>
