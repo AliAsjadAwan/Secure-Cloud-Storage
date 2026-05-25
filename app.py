@@ -18,6 +18,12 @@ import hashlib
 import time
 import hmac
 import magic
+import requests
+import io
+from io import BytesIO
+import cloudinary
+import cloudinary.uploader
+from cloudinary.utils import cloudinary_url
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -28,6 +34,14 @@ cipher=Fernet(encryption_key)
 
 # Secret for token generation (loaded from environment)
 SECRET = os.getenv("DOWNLOAD_SECRET")
+
+# Cloudinary configuration (reads from environment)
+cloudinary.config(
+    cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME'),
+    api_key=os.getenv('CLOUDINARY_API_KEY'),
+    api_secret=os.getenv('CLOUDINARY_API_SECRET'),
+    secure=True
+)
 
 # Token generator function
 def generate_token(file_id):
@@ -55,7 +69,10 @@ app.config["SESSION_COOKIE_HTTPONLY"]=True
 
 app.config["SESSION_COOKIE_SAMESITE"]="Lax"
 
-app.config["SQLALCHEMY_DATABASE_URI"]="sqlite:///database.db"
+# Use DATABASE_URL from environment for PostgreSQL in production, fall back to local SQLite for dev
+default_sqlite_path = os.path.join(os.path.dirname(__file__), 'instance', 'database.db')
+os.makedirs(os.path.dirname(default_sqlite_path), exist_ok=True)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', f'sqlite:///{default_sqlite_path}')
 
 db=SQLAlchemy(app)
 
@@ -146,6 +163,27 @@ class File(
 
     encrypted_name=db.Column(
         db.String(200)
+    )
+
+    # Cloudinary storage details (if files stored in cloud)
+    cloud_public_id = db.Column(
+        db.String(255),
+        nullable=True
+    )
+
+    cloud_url = db.Column(
+        db.String(1024),
+        nullable=True
+    )
+
+    storage_url = db.Column(
+        db.String(500),
+        nullable=True
+    )
+
+    cloud_resource_type = db.Column(
+        db.String(20),
+        default='raw'
     )
 
     owner_id=db.Column(
@@ -496,14 +534,21 @@ def upload():
 
     encrypted_name=filename+".enc"
 
-    encrypted_path=os.path.join(
-        "encrypted",
-        encrypted_name
-    )
-
-    with open(encrypted_path,"wb") as f:
-
-        f.write(encrypted_data)
+    # Upload encrypted bytes to Cloudinary as a raw resource
+    public_id = f"{current_user.id}/{secrets.token_urlsafe(8)}_{encrypted_name}"
+    try:
+        upload_result = cloudinary.uploader.upload(
+            io.BytesIO(encrypted_data),
+            public_id=public_id,
+            resource_type='raw',
+            overwrite=True
+        )
+        cloud_url = upload_result.get('secure_url') or upload_result.get('url')
+        cloud_public_id = upload_result.get('public_id')
+        storage_url = cloud_url
+    except Exception:
+        flash('Upload failed')
+        return redirect('/upload_page')
 
 
     new_file=File(
@@ -511,6 +556,12 @@ def upload():
     filename=filename,
 
     encrypted_name=encrypted_name,
+
+    cloud_public_id=cloud_public_id,
+
+    cloud_url=cloud_url,
+
+    storage_url=storage_url,
 
     owner_id=current_user.id,
 
@@ -653,8 +704,19 @@ def delete():
         file.encrypted_name
     )
 
+    # Remove from Cloudinary if stored there
+    try:
+        if file.cloud_public_id:
+            cloudinary.uploader.destroy(file.cloud_public_id, resource_type='raw')
+    except Exception:
+        pass
+
+    # Fallback: remove local encrypted file if present
     if os.path.exists(encrypted_path):
-        os.remove(encrypted_path)
+        try:
+            os.remove(encrypted_path)
+        except Exception:
+            pass
 
     db.session.delete(file)
     db.session.commit()
@@ -772,13 +834,25 @@ def secure_download(token):
     if not is_owner and not is_shared_valid:
         abort(403)
 
-    encrypted_path = os.path.join(
-        "encrypted",
-        file.encrypted_name
-    )
+    # Retrieve encrypted bytes from Cloudinary if available, otherwise fallback to local storage
+    encrypted_data = None
+    if getattr(file, 'storage_url', None):
+        try:
+            resp = requests.get(file.storage_url)
+            if resp.status_code != 200:
+                abort(404)
+            encrypted_data = resp.content
+        except Exception:
+            abort(404)
 
-    with open(encrypted_path,"rb") as f:
-        encrypted_data = f.read()
+    if encrypted_data is None:
+        encrypted_path = os.path.join(
+            "encrypted",
+            file.encrypted_name
+        )
+
+        with open(encrypted_path, "rb") as f:
+            encrypted_data = f.read()
 
     decrypted = cipher.decrypt(encrypted_data)
 
@@ -787,13 +861,9 @@ def secure_download(token):
     if current_hash != file.file_hash:
         return "File integrity compromised"
 
-    path = os.path.join(
-        "decrypted",
-        file.filename
-    )
-
-    with open(path,"wb") as f:
-        f.write(decrypted)
+    # Stream decrypted file from memory
+    mem = BytesIO(decrypted)
+    mem.seek(0)
 
     # Increment share download counter if this was a shared download
     if not is_owner and share:
@@ -805,7 +875,7 @@ def secure_download(token):
 
     add_log(current_user.id, f'DOWNLOAD FILE {file.id}')
 
-    return send_file(path, as_attachment=True)
+    return send_file(mem, as_attachment=True, download_name=file.filename)
 
 # Password change route (STEP 7C.1)
 @app.route("/change_password", methods=["POST"])
