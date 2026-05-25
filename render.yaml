@@ -3,7 +3,10 @@ services:
     name: secure-cloud-storage-web
     env: python
     plan: starter
-    buildCommand: pip install -r requirements.txt
+    buildCommand: |
+        apt-get update -y
+        apt-get install -y libmagic1
+        pip install -r requirements.txt
     startCommand: gunicorn app:app
     envVars:
       - key: SECRET_KEY
