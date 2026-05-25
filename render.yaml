@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: secure-cloud-storage-web
+    env: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: SECRET_KEY
+        value: null
+      - key: FERNET_KEY
+        value: null
+      - key: DOWNLOAD_SECRET
+        value: null
+      - key: CLOUDINARY_CLOUD_NAME
+        value: null
+      - key: CLOUDINARY_API_KEY
+        value: null
+      - key: CLOUDINARY_API_SECRET
+        value: null
+      - key: DATABASE_URL
+        value: null
+
+databases:
+  - name: secure-cloud-storage-db
+    plan: starter
+    databaseName: secure_cloud_storage
