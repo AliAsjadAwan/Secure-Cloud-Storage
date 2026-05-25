@@ -73,6 +73,7 @@ app.config["SESSION_COOKIE_SAMESITE"]="Lax"
 default_sqlite_path = os.path.join(os.path.dirname(__file__), 'instance', 'database.db')
 os.makedirs(os.path.dirname(default_sqlite_path), exist_ok=True)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', f'sqlite:///{default_sqlite_path}')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db=SQLAlchemy(app)
 
@@ -184,6 +185,11 @@ class File(
     cloud_resource_type = db.Column(
         db.String(20),
         default='raw'
+    )
+
+    public_id = db.Column(
+        db.String(255),
+        nullable=True
     )
 
     owner_id=db.Column(
@@ -563,6 +569,8 @@ def upload():
 
     storage_url=storage_url,
 
+    public_id=cloud_public_id,
+
     owner_id=current_user.id,
 
     upload_time=str(datetime.datetime.now()),
@@ -706,17 +714,10 @@ def delete():
 
     # Remove from Cloudinary if stored there
     try:
-        if file.cloud_public_id:
-            cloudinary.uploader.destroy(file.cloud_public_id, resource_type='raw')
+        if file.public_id:
+            cloudinary.uploader.destroy(file.public_id, resource_type='raw')
     except Exception:
         pass
-
-    # Fallback: remove local encrypted file if present
-    if os.path.exists(encrypted_path):
-        try:
-            os.remove(encrypted_path)
-        except Exception:
-            pass
 
     db.session.delete(file)
     db.session.commit()
@@ -834,25 +835,17 @@ def secure_download(token):
     if not is_owner and not is_shared_valid:
         abort(403)
 
-    # Retrieve encrypted bytes from Cloudinary if available, otherwise fallback to local storage
-    encrypted_data = None
-    if getattr(file, 'storage_url', None):
-        try:
-            resp = requests.get(file.storage_url)
-            if resp.status_code != 200:
-                abort(404)
-            encrypted_data = resp.content
-        except Exception:
+    # Retrieve encrypted bytes from Cloudinary (no local fallback)
+    if not getattr(file, 'storage_url', None):
+        abort(404)
+
+    try:
+        resp = requests.get(file.storage_url, timeout=15)
+        if resp.status_code != 200:
             abort(404)
-
-    if encrypted_data is None:
-        encrypted_path = os.path.join(
-            "encrypted",
-            file.encrypted_name
-        )
-
-        with open(encrypted_path, "rb") as f:
-            encrypted_data = f.read()
+        encrypted_data = resp.content
+    except Exception:
+        abort(404)
 
     decrypted = cipher.decrypt(encrypted_data)
 
