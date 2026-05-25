@@ -28,6 +28,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Determine debug mode from environment
+DEBUG_MODE = os.getenv('FLASK_DEBUG', 'False') == 'True'
+
 # Load encryption key from environment variables
 encryption_key = os.getenv("FERNET_KEY").encode()
 cipher=Fernet(encryption_key)
@@ -58,16 +61,15 @@ def generate_token(file_id):
 
     return f"{data}:{signature}"
 
-app=Flask(__name__)
+app = Flask(__name__)
 
-app.config["SECRET_KEY"]=os.getenv("SECRET_KEY")
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 
-# Secure session cookie configuration
-app.config["SESSION_COOKIE_SECURE"]=False
-
-app.config["SESSION_COOKIE_HTTPONLY"]=True
-
-app.config["SESSION_COOKIE_SAMESITE"]="Lax"
+# Production-safe cookie settings (secure=True when not in debug)
+app.config["SESSION_COOKIE_SECURE"] = not DEBUG_MODE
+app.config["REMEMBER_COOKIE_SECURE"] = not DEBUG_MODE
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
 # Use DATABASE_URL from environment for PostgreSQL in production, fall back to local SQLite for dev
 default_sqlite_path = os.path.join(os.path.dirname(__file__), 'instance', 'database.db')
@@ -88,7 +90,7 @@ csrf=CSRFProtect(app)
 
 Talisman(
     app,
-    force_https=False,
+    force_https=not DEBUG_MODE,
     strict_transport_security=True,
     strict_transport_security_max_age=31536000,
     content_security_policy={
@@ -1200,4 +1202,5 @@ if __name__ == "__main__":
         db.create_all()
         print("Database tables created")
 
-    app.run(debug=True)
+    # Run app. Debug is enabled only when FLASK_DEBUG env var is 'True'.
+    app.run(debug=DEBUG_MODE)
