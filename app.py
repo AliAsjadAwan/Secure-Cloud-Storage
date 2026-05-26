@@ -373,9 +373,13 @@ def register():
             r'.{8,}$'
         )
 
+        errors = {}
+
         if not re.match(pattern, raw_password):
-            flash('Password must contain uppercase, lowercase, number, special character and 8+ chars')
-            return redirect('/register')
+            errors['password'] = 'Password must contain uppercase, lowercase, number, special character and 8+ chars'
+            flash(errors['password'], 'danger')
+            print('FORM ERRORS:', errors)
+            return redirect(url_for('register'))
 
         password=bcrypt.generate_password_hash(raw_password).decode()
 
@@ -390,12 +394,14 @@ def register():
         try:
             db.session.add(user)
             db.session.commit()
-            return redirect("/login")
+            print("USER SAVED SUCCESSFULLY")
+            flash('Registration successful', 'success')
+            return redirect(url_for('login'))
         except Exception as e:
-            print(e)
+            print("DATABASE ERROR:", str(e))
             db.session.rollback()
-            flash('Registration failed — please try again')
-            return redirect('/register')
+            flash(f"Database error: {str(e)}", 'danger')
+            return redirect(url_for('register'))
 
 
     return render_template(
