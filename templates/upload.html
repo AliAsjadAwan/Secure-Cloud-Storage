@@ -98,6 +98,22 @@
             <p>Securely upload and encrypt your files</p>
         </div>
         
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% if category in ['danger','error'] or category=='register' %}
+                        <div class="alert alert-danger">{{ message }}</div>
+                    {% elif category == 'success' %}
+                        <div class="alert alert-success">{{ message }}</div>
+                    {% elif category == 'warning' %}
+                        <div class="alert alert-warning">{{ message }}</div>
+                    {% else %}
+                        <div class="alert alert-info">{{ message }}</div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
         <form method="POST" action="/upload" enctype="multipart/form-data">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="upload-card">
@@ -105,7 +121,7 @@
                 <div class="file-input-wrapper">
                     <input type="file" id="fileInput" name="file" required>
                     <label for="fileInput" class="upload-label">Click to select file</label>
-                    <div class="file-info">or drag and drop (PDF, PNG, JPG, TXT, DOCX)</div>
+                    <div class="file-info" id="selectedFileInfo">or drag and drop (PDF, PNG, JPG, TXT, DOCX)</div>
                 </div>
             </div>
             
@@ -116,5 +132,16 @@
             <a href="/files">← Back to Files</a>
         </div>
     </div>
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const selectedInfo = document.getElementById('selectedFileInfo');
+        fileInput.addEventListener('change', function(){
+            if (this.files && this.files.length > 0) {
+                selectedInfo.textContent = `Selected: ${this.files[0].name}`;
+            } else {
+                selectedInfo.textContent = 'or drag and drop (PDF, PNG, JPG, TXT, DOCX)';
+            }
+        });
+    </script>
 </body>
 </html>

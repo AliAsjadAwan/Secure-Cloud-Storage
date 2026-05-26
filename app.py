@@ -28,6 +28,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+import logging
+
+# configure basic logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Determine debug mode from environment
 DEBUG_MODE = os.getenv('FLASK_DEBUG', 'False') == 'True'
 
@@ -382,14 +388,24 @@ def register():
 
         if not re.match(pattern, raw_password):
             errors['password'] = 'Password must contain uppercase, lowercase, number, special character and 8+ chars'
-            flash(errors['password'], 'danger')
-            print('FORM ERRORS:', errors)
+            flash(errors['password'], 'register')
+            logger.info('Registration validation failed: %s', errors)
             return redirect(url_for('register'))
 
         password=bcrypt.generate_password_hash(raw_password).decode()
 
 
-        user=User(
+        # Check for existing username/email and report back to user
+        existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
+        if existing_user:
+            if existing_user.username == username:
+                flash('Username already taken. Choose another.', 'register')
+            if existing_user.email == email:
+                flash('Email already registered. Try logging in or reset password.', 'register')
+            logger.info('Registration attempt with existing credentials: username=%s email=%s', username, email)
+            return redirect(url_for('register'))
+
+        user = User(
             username=username,
             email=email,
             password=password
@@ -399,13 +415,16 @@ def register():
         try:
             db.session.add(user)
             db.session.commit()
-            print("USER SAVED SUCCESSFULLY")
+            logger.info('User created: %s', user.username)
             flash('Registration successful', 'success')
             return redirect(url_for('login'))
         except Exception as e:
-            print("DATABASE ERROR:", str(e))
+            logger.exception('Database error while creating user')
             db.session.rollback()
-            flash(f"Database error: {str(e)}", 'danger')
+            if DEBUG_MODE:
+                flash(f"Database error: {str(e)}", 'register')
+            else:
+                flash('An unexpected error occurred. Please try again later.', 'register')
             return redirect(url_for('register'))
 
 
@@ -433,33 +452,24 @@ def login():
         ).first()
 
         if user:
-
             if user.failed_attempts >= 5:
-                return "Account locked due to multiple failed attempts"
+                flash('Account locked due to multiple failed attempts. Contact admin.', 'danger')
+                return redirect(url_for('login'))
 
             if bcrypt.check_password_hash(user.password, password):
-
                 user.failed_attempts = 0
-
                 db.session.commit()
-
                 login_user(user)
-
                 add_log(user.id, "LOGIN SUCCESS")
-
                 return redirect(
                     "/dashboard"
                 )
-
             else:
-
                 user.failed_attempts += 1
-
                 db.session.commit()
-
                 add_log(user.id, "FAILED LOGIN")
-
-                return "Invalid credentials"
+                flash('Invalid credentials', 'danger')
+                return redirect(url_for('login'))
 
 
     return render_template(
@@ -601,7 +611,8 @@ def upload():
 
     add_log(current_user.id, "UPLOAD FILE")
 
-    return "File uploaded and encrypted successfully"
+    flash('File uploaded and encrypted successfully', 'success')
+    return redirect('/files')
 
 #upload route 2
 @app.route("/upload_page")
@@ -739,6 +750,7 @@ def delete():
 
     add_log(current_user.id, "DELETE FILE")
 
+    flash('File deleted successfully', 'success')
     return redirect("/files")
 
 #Admin route to view logs
@@ -805,8 +817,16 @@ def analytics():
 @login_required
 
 def secure_download(token):
-
-    file_id, expiry, signature = token.split(":")[:3]
+    # Robust token parsing
+    try:
+        parts = token.split(":")
+        if len(parts) < 3:
+            flash('Invalid link', 'danger')
+            return redirect(url_for('files'))
+        file_id, expiry, signature = parts[0], parts[1], parts[2]
+    except Exception:
+        flash('Invalid link', 'danger')
+        return redirect(url_for('files'))
 
     data = f"{file_id}:{expiry}"
 
@@ -817,10 +837,12 @@ def secure_download(token):
     ).hexdigest()
 
     if expected != signature:
-        return "Invalid link"
+        flash('Invalid or tampered link', 'danger')
+        return redirect(url_for('files'))
 
     if int(expiry) < int(time.time()):
-        return "Link expired"
+        flash('Link expired', 'warning')
+        return redirect(url_for('files'))
 
     file = File.query.get(file_id)
 
@@ -837,15 +859,15 @@ def secure_download(token):
             shared_with=current_user.id
         ).first()
         
-        if share:
-            # Enforce share expiry
-            if share.expiry and share.expiry < datetime.datetime.utcnow():
-                flash("This shared file has expired")
-                # log expiry
-                add_log(share.shared_by, f'SHARE EXPIRED {share.id}')
-                abort(403)
-            if share.permission == "download":
-                is_shared_valid = True
+            if share:
+                # Enforce share expiry
+                if share.expiry and share.expiry < datetime.datetime.utcnow():
+                    flash("This shared file has expired", 'warning')
+                    # log expiry
+                    add_log(share.shared_by, f'SHARE EXPIRED {share.id}')
+                    return redirect(url_for('shared'))
+                if share.permission == "download":
+                    is_shared_valid = True
     
     if not is_owner and not is_shared_valid:
         abort(403)
@@ -857,17 +879,22 @@ def secure_download(token):
     try:
         resp = requests.get(file.storage_url, timeout=15)
         if resp.status_code != 200:
-            abort(404)
+            flash('Failed to retrieve file from storage', 'danger')
+            return redirect(url_for('files'))
         encrypted_data = resp.content
     except Exception:
-        abort(404)
+        logger.exception('Error fetching file from storage')
+        flash('Failed to retrieve file from storage', 'danger')
+        return redirect(url_for('files'))
 
     decrypted = cipher.decrypt(encrypted_data)
 
     current_hash = hashlib.sha256(decrypted).hexdigest()
 
     if current_hash != file.file_hash:
-        return "File integrity compromised"
+        logger.warning('File integrity mismatch for file id %s', file.id)
+        flash('File integrity compromised. Contact admin.', 'danger')
+        return redirect(url_for('files'))
 
     # Stream decrypted file from memory
     mem = BytesIO(decrypted)
@@ -899,19 +926,22 @@ def change_password():
     confirm_new = request.form.get("confirm_new", "")
 
     if not bcrypt.check_password_hash(current_user.password, old):
-        return render_template("dashboard.html", error="Current password is incorrect")
+        flash('Current password is incorrect', 'danger')
+        return redirect(url_for('dashboard'))
     
     if len(new) < 6:
-        return render_template("dashboard.html", error="New password must be at least 6 characters")
+        flash('New password must be at least 6 characters', 'danger')
+        return redirect(url_for('dashboard'))
     
     if new != confirm_new:
-        return render_template("dashboard.html", error="New passwords do not match")
+        flash('New passwords do not match', 'danger')
+        return redirect(url_for('dashboard'))
 
     current_user.password = bcrypt.generate_password_hash(new).decode()
 
     db.session.commit()
-
-    return render_template("dashboard.html", success="Password updated successfully")
+    flash('Password updated successfully', 'success')
+    return redirect(url_for('dashboard'))
 
 # Admin statistics (STEP 7D.1)
 @app.route("/admin_stats")
@@ -1213,7 +1243,7 @@ if __name__ == "__main__":
 
     with app.app_context():
         db.create_all()
-        print("Database tables created")
+        logger.info("Database tables created")
 
     # Run app. Debug is enabled only when FLASK_DEBUG env var is 'True'.
     app.run(debug=DEBUG_MODE)

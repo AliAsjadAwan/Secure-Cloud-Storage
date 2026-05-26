@@ -182,6 +182,21 @@
     
     <div class="shared-container" style="position:relative;">
         {% include '_notifications_dropdown.html' %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% if category in ['danger','error'] or category=='register' %}
+                        <div class="alert alert-danger">{{ message }}</div>
+                    {% elif category == 'success' %}
+                        <div class="alert alert-success">{{ message }}</div>
+                    {% elif category == 'warning' %}
+                        <div class="alert alert-warning">{{ message }}</div>
+                    {% else %}
+                        <div class="alert alert-info">{{ message }}</div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
         <h2>Files Shared With You</h2>
         
         {% if files %}
