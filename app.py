@@ -859,15 +859,15 @@ def secure_download(token):
             shared_with=current_user.id
         ).first()
         
-            if share:
-                # Enforce share expiry
-                if share.expiry and share.expiry < datetime.datetime.utcnow():
-                    flash("This shared file has expired", 'warning')
-                    # log expiry
-                    add_log(share.shared_by, f'SHARE EXPIRED {share.id}')
-                    return redirect(url_for('shared'))
-                if share.permission == "download":
-                    is_shared_valid = True
+        if share:
+            # Enforce share expiry
+            if share.expiry and share.expiry < datetime.datetime.utcnow():
+                flash("This shared file has expired", 'warning')
+                # log expiry
+                add_log(share.shared_by, f'SHARE EXPIRED {share.id}')
+                return redirect(url_for('shared'))
+            if share.permission == "download":
+                is_shared_valid = True
     
     if not is_owner and not is_shared_valid:
         abort(403)
