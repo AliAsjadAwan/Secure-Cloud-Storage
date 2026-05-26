@@ -330,6 +330,11 @@ class SharedFile(
     )
 
 
+# Ensure database tables exist when the app module is imported
+with app.app_context():
+    db.create_all()
+
+
 # User loader for Flask-Login
 @login_manager.user_loader
 
