@@ -387,13 +387,15 @@ def register():
         )
 
 
-        db.session.add(user)
-
-        db.session.commit()
-
-        return redirect(
-            "/login"
-        )
+        try:
+            db.session.add(user)
+            db.session.commit()
+            return redirect("/login")
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+            flash('Registration failed — please try again')
+            return redirect('/register')
 
 
     return render_template(
