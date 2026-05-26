@@ -1,4 +1,4 @@
-from flask import Flask,render_template,request,redirect,url_for,flash,abort
+from flask import Flask,render_template,request,redirect,url_for,flash,abort, get_flashed_messages
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager,UserMixin,login_user,login_required,logout_user,current_user
 from flask_bcrypt import Bcrypt
@@ -428,6 +428,13 @@ def register():
             return redirect(url_for('register'))
 
 
+    # Ensure only authentication-related flashes are shown on register page
+    existing = get_flashed_messages(with_categories=True)
+    auth_categories = ['register','auth','danger','error','success','warning']
+    for c, m in existing:
+        if c in auth_categories:
+            flash(m, c)
+
     return render_template(
         "register.html"
     )
@@ -471,6 +478,13 @@ def login():
                 flash('Invalid credentials', 'danger')
                 return redirect(url_for('login'))
 
+
+    # Ensure only authentication-related flashes are shown on login page
+    existing = get_flashed_messages(with_categories=True)
+    auth_categories = ['register','auth','danger','error','success','warning']
+    for c, m in existing:
+        if c in auth_categories:
+            flash(m, c)
 
     return render_template(
         "login.html"
@@ -548,13 +562,13 @@ def upload():
     # Check for dangerous signatures first
     for signature in dangerous_signatures:
         if file_header.startswith(signature):
-            flash("Invalid file type. Only PDF, PNG, JPG, TXT, and DOCX allowed.")
+            flash("Invalid file type. Only PDF, PNG, JPG, TXT, and DOCX allowed.", 'upload')
             return redirect("/upload_page")
 
     mime=magic.from_buffer(file_header, mime=True)
 
     if mime not in allowed_mimes:
-        flash("Invalid file type. Only PDF, PNG, JPG, TXT, and DOCX allowed.")
+        flash("Invalid file type. Only PDF, PNG, JPG, TXT, and DOCX allowed.", 'upload')
         return redirect("/upload_page")
 
     data=file.read()
